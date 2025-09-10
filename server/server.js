@@ -1,0 +1,246 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const session = require('express-session');
+const passport = require('passport');
+const path = require('path');
+
+// Import database connection
+const connectDB = require('./config/database');
+
+// Import passport configuration
+require('./config/passport');
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+const supervisorRoutes = require('./routes/supervisor');
+const collectorRoutes = require('./routes/collector');
+
+// Load environment variables
+require('dotenv').config();
+
+// Connect to database
+connectDB();
+
+const app = express();
+
+// Security middleware
+app.use(helmet());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limiting for development
+  skip: (req) => process.env.NODE_ENV === 'development'
+});
+app.use('/api/', limiter);
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true
+}));
+
+// Body parser middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Session middleware
+app.use(session({
+  secret: process.env.JWT_SECRET || 'fallback-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/supervisor', supervisorRoutes);
+app.use('/api/collector', collectorRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// IoT data simulation endpoint (for testing)
+app.post('/api/iot/simulate', (req, res) => {
+  try {
+    // This endpoint simulates IoT data from waste bins
+    // In a real application, this would receive data from actual IoT devices
+    
+    const { binId, wasteType } = req.body;
+    
+    // Generate realistic dummy sensor data
+    const sensorData = {
+      weight: Math.random() * 50 + 10, // 10-60 kg
+      volume: Math.random() * 30 + 5,  // 5-35 liters
+      temperature: 20 + Math.random() * 15, // 20-35°C
+      humidity: 40 + Math.random() * 30,    // 40-70%
+      batteryLevel: 80 + Math.random() * 20, // 80-100%
+      signalStrength: 70 + Math.random() * 30, // 70-100%
+      lastUpdated: new Date(),
+      // Real IoT integration would include:
+      // - Ultrasonic sensor readings for fill level
+      // - Weight sensor data with calibration
+      // - Temperature/humidity sensor readings
+      // - GPS coordinates from device
+      // - Device health status
+      // - Battery level monitoring
+      // - Network connectivity status
+    };
+    
+    // Calculate fill level based on weight and capacity
+    const capacity = 50; // kg (typical bin capacity)
+    const fillLevel = Math.min((sensorData.weight / capacity) * 100, 100);
+    
+    res.json({
+      success: true,
+      message: 'IoT data simulated successfully',
+      data: {
+        binId,
+        wasteType,
+        fillLevel: Math.round(fillLevel * 100) / 100,
+        sensorData
+      }
+    });
+  } catch (error) {
+    console.error('IoT simulation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// Customer care FAQ endpoint
+app.get('/api/faq', (req, res) => {
+  const faqData = [
+    {
+      id: 1,
+      category: 'General',
+      question: 'How does the waste segregation system work?',
+      answer: 'Our IoT-enabled waste bins automatically detect and segregate different types of waste using advanced sensors and AI technology. Users simply deposit waste, and the system handles the rest.'
+    },
+    {
+      id: 2,
+      category: 'General',
+      question: 'What types of waste can be segregated?',
+      answer: 'Our system can segregate organic waste, plastic, paper, metal, glass, and electronic waste. Each bin is specifically designed for one waste type.'
+    },
+    {
+      id: 3,
+      category: 'User Account',
+      question: 'How do I earn points?',
+      answer: 'You earn points based on the accuracy of your waste segregation and the amount of waste deposited. Points are calculated monthly and reset each month.'
+    },
+    {
+      id: 4,
+      category: 'User Account',
+      question: 'Can I change my user type?',
+      answer: 'User types (User, Supervisor, Collector) are assigned by administrators. Contact support if you need to change your role.'
+    },
+    {
+      id: 5,
+      category: 'Technical',
+      question: 'What if the bin is not working?',
+      answer: 'If a bin appears offline or malfunctioning, please report it through the feedback system. Our technical team will address the issue promptly.'
+    },
+    {
+      id: 6,
+      category: 'Technical',
+      question: 'How accurate is the waste detection?',
+      answer: 'Our AI-powered detection system achieves 85-95% accuracy depending on the waste type. The system continuously learns and improves over time.'
+    },
+    {
+      id: 7,
+      category: 'Collection',
+      question: 'How often are bins collected?',
+      answer: 'Collection frequency depends on bin fill level and location. High-traffic areas are collected more frequently, typically every 1-3 days.'
+    },
+    {
+      id: 8,
+      category: 'Collection',
+      question: 'Can I track my waste collection?',
+      answer: 'Yes, you can view your waste segregation history and track when your waste was collected through your dashboard.'
+    },
+    {
+      id: 9,
+      category: 'Privacy',
+      question: 'Is my data secure?',
+      answer: 'Yes, we use industry-standard encryption and security measures to protect your personal data and waste segregation records.'
+    },
+    {
+      id: 10,
+      category: 'Support',
+      question: 'How can I contact support?',
+      answer: 'You can contact support through the feedback form in your dashboard, or email us at support@wastesegregator.com'
+    }
+  ];
+
+  res.json({
+    success: true,
+    data: faqData
+  });
+});
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+  });
+}
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err.stack);
+  
+  res.status(err.status || 500).json({
+    success: false,
+    message: process.env.NODE_ENV === 'production' 
+      ? 'Something went wrong!' 
+      : err.message
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`API Documentation: http://localhost:${PORT}/api/faq`);
+});
+
+module.exports = app;
