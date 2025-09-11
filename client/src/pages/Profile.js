@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner, Badge } from 'react-bootstrap';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -19,6 +20,8 @@ const Profile = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(true);
+  const [roleData, setRoleData] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -26,8 +29,32 @@ const Profile = () => {
         name: user.name || '',
         email: user.email || ''
       });
+      loadRoleData(user.userType);
     }
   }, [user]);
+
+  const loadRoleData = async (userType) => {
+    try {
+      setRoleLoading(true);
+      if (userType === 'user') {
+        const res = await axios.get('/api/user/dashboard');
+        setRoleData(res.data.data);
+      } else if (userType === 'collector') {
+        const res = await axios.get('/api/collector/dashboard');
+        setRoleData(res.data.data);
+      } else if (userType === 'supervisor') {
+        const res = await axios.get('/api/supervisor/dashboard');
+        setRoleData(res.data.data);
+      } else {
+        setRoleData(null);
+      }
+    } catch (e) {
+      // Non-fatal: profile basics still render
+      setRoleData(null);
+    } finally {
+      setRoleLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -133,7 +160,9 @@ const Profile = () => {
             <Card.Header className="bg-primary text-white">
               <h4 className="mb-0">
                 <i className="bi bi-person-circle me-2"></i>
-                User Profile
+                {user.userType === 'user' && 'User Profile'}
+                {user.userType === 'collector' && 'Collector Profile'}
+                {user.userType === 'supervisor' && 'Supervisor Profile'}
               </h4>
             </Card.Header>
             <Card.Body>
@@ -150,32 +179,100 @@ const Profile = () => {
                   <p className="text-muted small">{user.email}</p>
                 </Col>
                 <Col md={8}>
-                  <Row>
-                    <Col sm={6}>
-                      <div className="text-center p-3 border rounded mb-3">
-                        <h6 className="text-primary mb-1">Monthly Points</h6>
-                        <h4 className="mb-0">{user.monthlyPoints || 0}</h4>
-                      </div>
-                    </Col>
-                    <Col sm={6}>
-                      <div className="text-center p-3 border rounded mb-3">
-                        <h6 className="text-success mb-1">Accuracy</h6>
-                        <h4 className="mb-0">{user.monthlyAccuracy ? `${user.monthlyAccuracy.toFixed(1)}%` : '0%'}</h4>
-                      </div>
-                    </Col>
-                    <Col sm={6}>
-                      <div className="text-center p-3 border rounded mb-3">
-                        <h6 className="text-warning mb-1">Total Quantity</h6>
-                        <h4 className="mb-0">{user.totalWasteAmount || 0} items</h4>
-                      </div>
-                    </Col>
-                    <Col sm={6}>
-                      <div className="text-center p-3 border rounded mb-3">
-                        <h6 className="text-info mb-1">Efficiency</h6>
-                        <h4 className="mb-0">{user.segregationEfficiency ? `${user.segregationEfficiency.toFixed(1)}%` : '0%'}</h4>
-                      </div>
-                    </Col>
-                  </Row>
+                  {roleLoading ? (
+                    <div className="d-flex align-items-center justify-content-center h-100">
+                      <Spinner size="sm" className="me-2" /> Loading role data...
+                    </div>
+                  ) : (
+                    <Row>
+                      {user.userType === 'user' && (
+                        <>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-primary mb-1">Monthly Points</h6>
+                              <h4 className="mb-0">{roleData?.userStats?.monthlyPoints ?? user.monthlyPoints ?? 0}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-success mb-1">Accuracy</h6>
+                              <h4 className="mb-0">{(roleData?.userStats?.monthlyAccuracy ?? user.monthlyAccuracy ?? 0).toFixed ? (roleData?.userStats?.monthlyAccuracy ?? user.monthlyAccuracy).toFixed(1) + '%' : `${roleData?.userStats?.monthlyAccuracy ?? user.monthlyAccuracy ?? 0}%`}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-warning mb-1">Total Quantity</h6>
+                              <h4 className="mb-0">{roleData?.userStats?.totalWasteAmount ?? user.totalWasteAmount ?? 0} items</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-info mb-1">Efficiency</h6>
+                              <h4 className="mb-0">{(roleData?.userStats?.segregationEfficiency ?? user.segregationEfficiency ?? 0).toFixed ? (roleData?.userStats?.segregationEfficiency ?? user.segregationEfficiency).toFixed(1) + '%' : `${roleData?.userStats?.segregationEfficiency ?? user.segregationEfficiency ?? 0}%`}</h4>
+                            </div>
+                          </Col>
+                        </>
+                      )}
+
+                      {user.userType === 'collector' && (
+                        <>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-primary mb-1">Assigned Bins</h6>
+                              <h4 className="mb-0">{roleData?.overview?.totalAssignedBins ?? 0}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-warning mb-1">Full Bins</h6>
+                              <h4 className="mb-0">{roleData?.overview?.fullBins ?? 0}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-success mb-1">Today's Collections</h6>
+                              <h4 className="mb-0">{roleData?.overview?.todayCollectionCount ?? 0}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-info mb-1">Pending Collections</h6>
+                              <h4 className="mb-0">{roleData?.overview?.pendingCollectionCount ?? 0}</h4>
+                            </div>
+                          </Col>
+                        </>
+                      )}
+
+                      {user.userType === 'supervisor' && (
+                        <>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-primary mb-1">Active Collectors</h6>
+                              <h4 className="mb-0">{roleData?.overview?.activeCollectors ?? 0}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-warning mb-1">Full Bins</h6>
+                              <h4 className="mb-0">{roleData?.overview?.fullBins ?? 0}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-success mb-1">Collection Efficiency</h6>
+                              <h4 className="mb-0">{roleData?.overview?.collectionEfficiency != null ? `${roleData.overview.collectionEfficiency}%` : '0%'}</h4>
+                            </div>
+                          </Col>
+                          <Col sm={6}>
+                            <div className="text-center p-3 border rounded mb-3">
+                              <h6 className="text-info mb-1">Total Bins</h6>
+                              <h4 className="mb-0">{roleData?.overview?.totalBins ?? 0}</h4>
+                            </div>
+                          </Col>
+                        </>
+                      )}
+                    </Row>
+                  )}
                 </Col>
               </Row>
 

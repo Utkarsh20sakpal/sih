@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Accordion, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Accordion, Spinner, Alert, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -7,6 +7,10 @@ const CustomerCare = () => {
   const [faqData, setFaqData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [sentMsg, setSentMsg] = useState('');
+  const [sendError, setSendError] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
 
   useEffect(() => {
     fetchFAQ();
@@ -34,6 +38,28 @@ const CustomerCare = () => {
       groups[category].push(faq);
       return groups;
     }, {});
+  };
+
+  const handleInput = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const sendEmail = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setSentMsg('');
+    setSendError('');
+    try {
+      const res = await axios.post('/api/support/email', form);
+      setSentMsg(res.data.message || 'Your message has been sent.');
+      setForm({ name: '', email: '', subject: '', message: '' });
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to send message';
+      setSendError(msg);
+    } finally {
+      setSending(false);
+    }
   };
 
   if (loading) {
@@ -163,16 +189,35 @@ const CustomerCare = () => {
               <p className="text-muted mb-4">
                 Can't find what you're looking for? Our support team is here to help you 24/7.
               </p>
-              <div className="d-flex justify-content-center gap-3">
-                <a href="mailto:support@wastesegregator.com" className="btn btn-primary btn-lg">
-                  <i className="bi bi-envelope me-2"></i>
-                  Email Support
-                </a>
-                <a href="tel:+15551234567" className="btn btn-outline-primary btn-lg">
-                  <i className="bi bi-telephone me-2"></i>
-                  Call Support
-                </a>
-              </div>
+              <Row className="justify-content-center">
+                <Col md={8} lg={6}>
+                  {sentMsg && <Alert variant="success" className="text-start">{sentMsg}</Alert>}
+                  {sendError && <Alert variant="danger" className="text-start">{sendError}</Alert>}
+                  <Form onSubmit={sendEmail} className="text-start">
+                    <Form.Group className="mb-3">
+                      <Form.Label>Your Name</Form.Label>
+                      <Form.Control name="name" value={form.name} onChange={handleInput} required />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Your Email</Form.Label>
+                      <Form.Control type="email" name="email" value={form.email} onChange={handleInput} required />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Subject</Form.Label>
+                      <Form.Control name="subject" value={form.subject} onChange={handleInput} required />
+                    </Form.Group>
+                    <Form.Group className="mb-4">
+                      <Form.Label>Message</Form.Label>
+                      <Form.Control as="textarea" rows={5} name="message" value={form.message} onChange={handleInput} required minLength={10} />
+                    </Form.Group>
+                    <div className="d-grid">
+                      <Button type="submit" variant="primary" disabled={sending}>
+                        {sending ? (<><Spinner animation="border" size="sm" className="me-2" />Sending...</>) : (<><i className="bi bi-envelope me-2"></i>Send Email</>)}
+                      </Button>
+                    </div>
+                  </Form>
+                </Col>
+              </Row>
             </Card.Body>
           </Card>
         </Col>

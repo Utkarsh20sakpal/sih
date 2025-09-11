@@ -219,8 +219,51 @@ router.get('/google/callback',
 // @access  Private
 router.get('/me', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    
+    let user;
+    try {
+      user = await User.findById(req.user.id);
+    } catch (dbError) {
+      user = null;
+    }
+
+    if (!user) {
+      // Fallback to mock data when DB is unavailable
+      const { mockData, findById } = require('../data/mockData');
+      const mockUser = findById(mockData.users, req.user.id);
+      if (mockUser) {
+        const {
+          _id,
+          name,
+          email,
+          userType,
+          avatar,
+          monthlyPoints,
+          monthlyAccuracy,
+          totalWasteAmount,
+          segregationEfficiency
+        } = mockUser;
+
+        return res.json({
+          success: true,
+          user: {
+            id: _id,
+            name,
+            email,
+            userType,
+            avatar,
+            monthlyPoints,
+            monthlyAccuracy,
+            totalWasteAmount,
+            segregationEfficiency
+          }
+        });
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
     res.json({
       success: true,
       user: {

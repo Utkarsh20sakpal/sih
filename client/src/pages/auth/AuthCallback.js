@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Alert } from 'react-bootstrap';
+import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
@@ -27,6 +28,8 @@ const AuthCallback = () => {
         try {
           // Store token in localStorage
           localStorage.setItem('token', token);
+          // Ensure axios has the Authorization header set for immediate next request
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           // Load user data
           await loadUser();

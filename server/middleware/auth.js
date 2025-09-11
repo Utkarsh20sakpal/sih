@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { mockData, findById } = require('../data/mockData');
 
 // Protect routes - verify JWT token
 const protect = async (req, res, next) => {
@@ -13,15 +14,23 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
 
-      // Get user from token - validate ObjectId format
-      if (!decoded.id || typeof decoded.id !== 'string' || decoded.id.length !== 24) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid token format'
-        });
+      // Try to fetch user from MongoDB if the id looks like an ObjectId, otherwise fall back to mock data
+      const looksLikeObjectId = typeof decoded.id === 'string' && /^[a-f\d]{24}$/i.test(decoded.id);
+
+      if (looksLikeObjectId) {
+        req.user = await User.findById(decoded.id).select('-password');
       }
-      
-      req.user = await User.findById(decoded.id).select('-password');
+
+      // If not found in DB or not an ObjectId, try mock data
+      if (!req.user) {
+        const mockUser = findById(mockData.users, decoded.id);
+        if (mockUser) {
+          // Align shape with Mongoose doc selection
+          const { password, ...safeUser } = mockUser;
+          // Ensure both _id and id are available like a Mongoose document
+          req.user = { ...safeUser, id: safeUser._id };
+        }
+      }
 
       if (!req.user) {
         return res.status(401).json({
@@ -30,7 +39,7 @@ const protect = async (req, res, next) => {
         });
       }
 
-      if (!req.user.isActive) {
+      if (req.user.isActive === false) {
         return res.status(401).json({
           success: false,
           message: 'Account is deactivated'

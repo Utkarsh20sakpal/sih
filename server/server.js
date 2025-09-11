@@ -17,6 +17,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const supervisorRoutes = require('./routes/supervisor');
 const collectorRoutes = require('./routes/collector');
+const supportRoutes = require('./routes/support');
 
 // Load environment variables
 require('dotenv').config();
@@ -74,6 +75,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/supervisor', supervisorRoutes);
 app.use('/api/collector', collectorRoutes);
+app.use('/api/support', supportRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
