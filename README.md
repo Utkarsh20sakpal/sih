@@ -1,4 +1,4 @@
-# IoT Multi-Stage Waste Segregator
+# PixelBin - Smart Waste Management
 
 A production-ready, responsive MERN stack web application for smart waste management using IoT technology. This system provides separate dashboards for Users, Supervisors, and Collectors with comprehensive waste segregation tracking, real-time monitoring, and route optimization.
 
@@ -70,7 +70,7 @@ Before running this application, make sure you have the following installed:
 
 ```bash
 git clone <repository-url>
-cd iot-waste-segregator
+cd pixelbin
 ```
 
 ### 2. Install Dependencies
@@ -92,7 +92,7 @@ Create a `.env` file in the `server` directory:
 
 ```env
 # MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/iot-waste-segregator
+MONGODB_URI=mongodb://localhost:27017/pixelbin
 
 # JWT Configuration
 JWT_SECRET=your-super-secret-jwt-key-here
@@ -233,7 +233,7 @@ The application creates default users for testing:
 ## 🏗️ Project Structure
 
 ```
-iot-waste-segregator/
+pixelbin/
 ├── client/                 # React frontend
 │   ├── public/
 │   ├── src/
@@ -329,7 +329,7 @@ curl -X POST http://localhost:5000/api/auth/register \
 
 ```env
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/iot-waste-segregator
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/pixelbin
 JWT_SECRET=your-production-jwt-secret
 GOOGLE_CLIENT_ID=your-production-google-client-id
 GOOGLE_CLIENT_SECRET=your-production-google-client-secret
@@ -429,7 +429,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For support and questions:
 
-- **Email**: support@wastesegregator.com
+- **Email**: support@pixelbin.app
 - **Documentation**: Check this README and inline code comments
 - **Issues**: Create an issue in the repository
 
@@ -448,4 +448,4 @@ For support and questions:
 
 **Made with ❤️ for a cleaner planet** 🌍
 
-This IoT waste segregator system represents a step forward in smart waste management, combining cutting-edge technology with environmental responsibility to create a more sustainable future.
+PixelBin represents a step forward in smart waste management, combining cutting-edge technology with environmental responsibility to create a more sustainable future.

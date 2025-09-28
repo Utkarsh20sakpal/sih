@@ -313,7 +313,7 @@ const Profile = () => {
                 <Form onSubmit={handleProfileSubmit}>
                   <Row>
                     <Col md={6}>
-                      <Form.Group className="mb-3">
+                      <Form.Group className="mb-3" controlId="profileName">
                         <Form.Label>Full Name</Form.Label>
                         <Form.Control
                           type="text"
@@ -325,7 +325,7 @@ const Profile = () => {
                       </Form.Group>
                     </Col>
                     <Col md={6}>
-                      <Form.Group className="mb-3">
+                      <Form.Group className="mb-3" controlId="profileEmail">
                         <Form.Label>Email Address</Form.Label>
                         <Form.Control
                           type="email"
@@ -361,7 +361,7 @@ const Profile = () => {
               {/* Password Form */}
               {activeTab === 'password' && (
                 <Form onSubmit={handlePasswordSubmit}>
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="currentPassword">
                     <Form.Label>Current Password</Form.Label>
                     <Form.Control
                       type="password"
@@ -371,7 +371,7 @@ const Profile = () => {
                       required
                     />
                   </Form.Group>
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="newPassword">
                     <Form.Label>New Password</Form.Label>
                     <Form.Control
                       type="password"
@@ -382,7 +382,7 @@ const Profile = () => {
                       minLength={6}
                     />
                   </Form.Group>
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="confirmNewPassword">
                     <Form.Label>Confirm New Password</Form.Label>
                     <Form.Control
                       type="password"

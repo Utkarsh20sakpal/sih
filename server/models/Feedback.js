@@ -37,6 +37,7 @@ const feedbackSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high', 'urgent'],
     default: 'medium'
   },
+  // Deprecated single response (kept for backward compatibility)
   response: {
     message: String,
     respondedBy: {
@@ -45,6 +46,12 @@ const feedbackSchema = new mongoose.Schema({
     },
     respondedAt: Date
   },
+  // New: support multiple supervisor replies
+  responses: [{
+    message: { type: String, required: true },
+    respondedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    respondedAt: { type: Date, default: Date.now }
+  }],
   tags: [String],
   attachments: [{
     filename: String,

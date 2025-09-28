@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/iot-waste-segregator');
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pixelbin');
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

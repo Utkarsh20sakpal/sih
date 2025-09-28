@@ -17,17 +17,19 @@ const ProtectedRoute = ({ children, userType, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if user has required role
-  if (userType && user.userType !== userType) {
-    // Redirect to appropriate dashboard based on user type
-    const dashboardPath = `/${user.userType}/dashboard`;
+  // Check if user has required role (only if role info is available)
+  if (userType && user && user.userType && user.userType !== userType) {
+    // Redirect to appropriate dashboard based on user type (with safe fallback)
+    const role = typeof user.userType === 'string' && user.userType.trim() ? user.userType : 'user';
+    const dashboardPath = `/${role}/dashboard`;
     return <Navigate to={dashboardPath} replace />;
   }
 
   // Check if user has any of the allowed roles
-  if (allowedRoles && !allowedRoles.includes(user.userType)) {
-    // Redirect to appropriate dashboard based on user type
-    const dashboardPath = `/${user.userType}/dashboard`;
+  if (allowedRoles && user && user.userType && !allowedRoles.includes(user.userType)) {
+    // Redirect to appropriate dashboard based on user type (with safe fallback)
+    const role = typeof user.userType === 'string' && user.userType.trim() ? user.userType : 'user';
+    const dashboardPath = `/${role}/dashboard`;
     return <Navigate to={dashboardPath} replace />;
   }
 

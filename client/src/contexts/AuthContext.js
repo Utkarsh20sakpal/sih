@@ -122,6 +122,9 @@ export const AuthProvider = ({ children }) => {
         payload: res.data.user
       });
     } catch (error) {
+      console.error('Load user error:', error);
+      // Clear any stale/invalid token on failure to avoid auth loops
+      localStorage.removeItem('token');
       dispatch({
         type: AUTH_ACTIONS.AUTH_ERROR,
         payload: error.response?.data?.message || 'Authentication failed'

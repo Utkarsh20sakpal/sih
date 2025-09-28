@@ -568,6 +568,9 @@ code {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  /* Ensure navbar sits above other positioned content */
+  position: relative;
+  z-index: 1040; /* higher than default dropdown stacking */
 }
 
 [data-theme="dark"] .navbar-glass {
@@ -614,6 +617,11 @@ code {
 .dropdown-menu {
   max-height: 60vh;
   overflow-y: auto;
+}
+
+/* Ensure navbar dropdowns overlay maps/cards and other positioned elements */
+.navbar .dropdown-menu {
+  z-index: 2000;
 }
 
 /* Improved spacing utilities */

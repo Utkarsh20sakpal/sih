@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
+const { generateSafaiAnswer } = require('../config/samba');
 
 const router = express.Router();
 
@@ -45,8 +46,8 @@ router.post(
       const { name, email, subject, message } = req.body;
 
       const transporter = createTransporter();
-      const toAddress = process.env.SUPPORT_EMAIL_TO || 'support@wastesegregator.com';
-      const fromAddress = process.env.SUPPORT_EMAIL_FROM || 'no-reply@wastesegregator.com';
+      const toAddress = process.env.SUPPORT_EMAIL_TO || 'support@pixelbin.app';
+      const fromAddress = process.env.SUPPORT_EMAIL_FROM || 'no-reply@pixelbin.app';
 
       const info = await transporter.sendMail({
         from: fromAddress,
@@ -85,6 +86,24 @@ ${message}
 );
 
 module.exports = router;
+
+// @desc   Safai Master guidance
+// @route  POST /api/support/safai-master
+// @access Public
+router.post('/safai-master', async (req, res) => {
+  try {
+    const { question, context, faqData } = req.body || {};
+    if (!question || typeof question !== 'string' || question.trim().length < 3) {
+      return res.status(400).json({ success: false, message: 'Question is required' });
+    }
+
+    const result = await generateSafaiAnswer({ question, context, faqData: Array.isArray(faqData) ? faqData : [] });
+    return res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('Safai Master error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to generate guidance' });
+  }
+});
 
 
 

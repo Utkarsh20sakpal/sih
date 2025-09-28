@@ -79,7 +79,7 @@ const Login = () => {
                 )}
 
                 <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="loginEmail">
                     <Form.Label>Email Address</Form.Label>
                     <Form.Control
                       type="email"
@@ -91,7 +91,7 @@ const Login = () => {
                     />
                   </Form.Group>
 
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="loginPassword">
                     <Form.Label>Password</Form.Label>
                     <div className="position-relative">
                       <Form.Control
@@ -115,6 +115,7 @@ const Login = () => {
 
                   <div className="d-flex justify-content-between align-items-center mb-4">
                     <Form.Check
+                      id="loginRemember"
                       type="checkbox"
                       label="Remember me"
                     />

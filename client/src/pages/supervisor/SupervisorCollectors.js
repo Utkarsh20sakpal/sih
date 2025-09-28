@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Button, Form, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Form, Spinner, Alert, Badge, Modal } from 'react-bootstrap';
 import axios from 'axios';
 
 const SupervisorCollectors = () => {
@@ -9,6 +9,11 @@ const SupervisorCollectors = () => {
   const [error, setError] = useState('');
   const [assign, setAssign] = useState({ collectorId: '', binIds: '' });
   const [sending, setSending] = useState(false);
+  const [showWarnModal, setShowWarnModal] = useState(false);
+  const [selectedCollector, setSelectedCollector] = useState(null);
+  const [issuing, setIssuing] = useState(false);
+  const [warnError, setWarnError] = useState('');
+  const [warn, setWarn] = useState({ title: '', importance: 'medium', message: '' });
 
   const fetchData = async () => {
     try {
@@ -46,6 +51,36 @@ const SupervisorCollectors = () => {
       await axios.post('/api/supervisor/send-instruction', { collectorId, instruction: 'Please prioritize full bins', priority: 'high' });
     } catch (e) {
       setError('Failed to send instruction');
+    }
+  };
+
+  const openWarnModal = (collector) => {
+    setSelectedCollector(collector);
+    setWarn({ title: '', importance: 'medium', message: '' });
+    setWarnError('');
+    setShowWarnModal(true);
+  };
+
+  const issueWarning = async () => {
+    if (!selectedCollector) return;
+    if (!warn.message.trim()) {
+      setWarnError('Message is required');
+      return;
+    }
+    setIssuing(true);
+    setWarnError('');
+    try {
+      await axios.post('/api/supervisor/warnings', {
+        collectorId: selectedCollector._id,
+        title: warn.title,
+        importance: warn.importance,
+        message: warn.message
+      });
+      setShowWarnModal(false);
+    } catch (e) {
+      setWarnError(e?.response?.data?.message || 'Failed to issue warning');
+    } finally {
+      setIssuing(false);
     }
   };
 
@@ -111,6 +146,9 @@ const SupervisorCollectors = () => {
                             <Button size="sm" variant="outline-primary" onClick={()=>sendInstruction(c._id)}>
                               <i className="bi bi-send me-1"></i>Notify
                             </Button>
+                            <Button size="sm" variant="danger" className="ms-2" onClick={()=>openWarnModal(c)}>
+                              <i className="bi bi-exclamation-triangle me-1"></i>Warn
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -153,7 +191,46 @@ const SupervisorCollectors = () => {
             </Card.Body>
           </Card>
         </Col>
-      </Row>
+  </Row>
+
+  {/* Issue Warning Modal */}
+  <Modal show={showWarnModal} onHide={()=>setShowWarnModal(false)} centered>
+    <Modal.Header closeButton>
+      <Modal.Title>Issue Warning</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      {warnError && <Alert variant="danger">{warnError}</Alert>}
+      <Form>
+        <Form.Group className="mb-3">
+          <Form.Label>Collector</Form.Label>
+          <Form.Control value={`${selectedCollector?.name || ''} (${selectedCollector?.email || ''})`} disabled />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Title (optional)</Form.Label>
+          <Form.Control placeholder="Short title" value={warn.title} onChange={(e)=>setWarn({...warn,title:e.target.value})} />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Importance</Form.Label>
+          <Form.Select value={warn.importance} onChange={(e)=>setWarn({...warn,importance:e.target.value})}>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </Form.Select>
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Message</Form.Label>
+          <Form.Control as="textarea" rows={4} placeholder="Write the warning details" value={warn.message} onChange={(e)=>setWarn({...warn,message:e.target.value})} />
+        </Form.Group>
+      </Form>
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="secondary" onClick={()=>setShowWarnModal(false)}>Cancel</Button>
+      <Button variant="danger" onClick={issueWarning} disabled={issuing}>
+        {issuing ? (<><Spinner animation="border" size="sm" className="me-2" />Issuing...</>) : (<><i className="bi bi-exclamation-triangle me-2"></i>Issue Warning</>)}
+      </Button>
+    </Modal.Footer>
+  </Modal>
     </Container>
   );
 };

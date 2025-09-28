@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Bin = require('../models/Bin');
 const WasteRecord = require('../models/WasteRecord');
 const Feedback = require('../models/Feedback');
+const Warning = require('../models/Warning');
 
 const router = express.Router();
 
@@ -12,20 +13,29 @@ const router = express.Router();
 // @access  Private (Supervisor)
 router.get('/dashboard', protect, authorize('supervisor'), async (req, res) => {
   try {
-    // Get all collectors
-    const collectors = await User.find({ 
-      userType: 'collector',
-      isActive: true 
-    }).select('name email assignedBins lastLogin');
-
-    // Get all bins
-    const bins = await Bin.find({ status: 'active' });
-
-    // Get recent waste records
-    const recentRecords = await WasteRecord.find()
-      .sort({ timestamp: -1 })
-      .limit(10)
-      .populate('userId', 'name userType');
+    let collectors, bins, recentRecords;
+    try {
+      // Get all collectors
+      collectors = await User.find({ 
+        userType: 'collector',
+        isActive: true 
+      }).select('name email assignedBins lastLogin');
+      // Get all bins
+      bins = await Bin.find({ status: 'active' });
+      // Get recent waste records
+      recentRecords = await WasteRecord.find()
+        .sort({ timestamp: -1 })
+        .limit(10)
+        .populate('userId', 'name userType');
+    } catch (dbError) {
+      const { mockData } = require('../data/mockData');
+      collectors = mockData.users.filter(u => u.userType === 'collector');
+      bins = mockData.bins;
+      recentRecords = mockData.wasteRecords
+        .slice()
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 10);
+    }
 
     // Calculate statistics
     const totalBins = bins.length;
@@ -75,10 +85,33 @@ router.get('/dashboard', protect, authorize('supervisor'), async (req, res) => {
     });
   } catch (error) {
     console.error('Get supervisor dashboard error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    // Last resort mock
+    try {
+      const { mockData } = require('../data/mockData');
+      const collectors = mockData.users.filter(u => u.userType === 'collector');
+      const bins = mockData.bins;
+      const recentRecords = mockData.wasteRecords
+        .slice()
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 10);
+      const totalBins = bins.length;
+      const fullBins = bins.filter(bin => bin.currentFillLevel >= 90).length;
+      const offlineBins = bins.filter(bin => bin.status === 'offline').length;
+      const totalCollectors = collectors.length;
+      const activeCollectors = collectors.length;
+      const collectionEfficiency = totalBins > 0 ? (fullBins / totalBins) * 100 : 0;
+      return res.json({
+        success: true,
+        data: {
+          overview: { totalBins, fullBins, offlineBins, totalCollectors, activeCollectors, collectionEfficiency },
+          collectors,
+          bins,
+          recentRecords
+        }
+      });
+    } catch (fallbackError) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
   }
 });
 
@@ -212,6 +245,60 @@ router.post('/issue-memo', protect, authorize('supervisor'), async (req, res) =>
   }
 });
 
+// @desc    Create a warning for a collector
+// @route   POST /api/supervisor/warnings
+// @access  Private (Supervisor)
+router.post('/warnings', protect, authorize('supervisor'), async (req, res) => {
+  try {
+    const { collectorId, importance = 'medium', title = '', message } = req.body;
+
+    if (!collectorId || !message) {
+      return res.status(400).json({ success: false, message: 'collectorId and message are required' });
+    }
+
+    const collector = await User.findById(collectorId);
+    if (!collector || collector.userType !== 'collector') {
+      return res.status(404).json({ success: false, message: 'Collector not found' });
+    }
+
+    const warning = await Warning.create({
+      collectorId,
+      supervisorId: req.user.id,
+      importance,
+      title,
+      message
+    });
+
+    res.status(201).json({ success: true, data: warning, message: 'Warning issued successfully' });
+  } catch (error) {
+    console.error('Create warning error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @desc    List warnings (optionally filter by collector)
+// @route   GET /api/supervisor/warnings
+// @access  Private (Supervisor)
+router.get('/warnings', protect, authorize('supervisor'), async (req, res) => {
+  try {
+    const { collectorId, status, importance } = req.query;
+    const filter = {};
+    if (collectorId) filter.collectorId = collectorId;
+    if (status) filter.status = status;
+    if (importance) filter.importance = importance;
+
+    const warnings = await Warning.find(filter)
+      .sort({ createdAt: -1 })
+      .populate('collectorId', 'name email')
+      .populate('supervisorId', 'name email');
+
+    res.json({ success: true, data: warnings });
+  } catch (error) {
+    console.error('List warnings error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // @desc    Get bin status
 // @route   GET /api/supervisor/bins
 // @access  Private (Supervisor)
@@ -325,7 +412,7 @@ router.get('/feedback', protect, authorize('supervisor'), async (req, res) => {
 router.put('/feedback/:feedbackId/respond', protect, authorize('supervisor'), async (req, res) => {
   try {
     const { feedbackId } = req.params;
-    const { message, status = 'resolved' } = req.body;
+    const { message, status } = req.body;
 
     const feedback = await Feedback.findById(feedbackId);
     if (!feedback) {
@@ -335,18 +422,27 @@ router.put('/feedback/:feedbackId/respond', protect, authorize('supervisor'), as
       });
     }
 
-    feedback.response = {
+    // Append new reply; keep legacy single response updated with latest
+    feedback.responses = feedback.responses || [];
+    const newReply = {
       message,
       respondedBy: req.user.id,
       respondedAt: new Date()
     };
-    feedback.status = status;
+    feedback.responses.push(newReply);
+    feedback.response = newReply; // update legacy field for backward compatibility
+
+    // Optionally update status if provided
+    if (status) {
+      feedback.status = status;
+    }
 
     await feedback.save();
 
     res.json({
       success: true,
-      message: 'Response sent successfully'
+      message: 'Reply recorded successfully',
+      data: feedback
     });
   } catch (error) {
     console.error('Respond to feedback error:', error);

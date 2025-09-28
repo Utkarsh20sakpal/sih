@@ -1,0 +1,8 @@
+.container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+nav.navbar { display: flex; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid #eee; align-items: center; }
+.navbar .spacer { flex: 1; }
+.dropdown { position: relative; }
+.dropdown-toggle { background: transparent; border: 1px solid #ddd; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; }
+.dropdown-menu { position: absolute; right: 0; top: 120%; background: #fff; border: 1px solid #eee; padding: 0.5rem; display: none; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.dropdown:hover .dropdown-menu { display: block; }
+.dropdown-menu a, .dropdown-menu button { display: block; padding: 0.5rem; background: none; border: none; text-align: left; width: 100%; cursor: pointer; }

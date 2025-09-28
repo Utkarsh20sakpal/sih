@@ -23,22 +23,23 @@ const Navbar = () => {
 
   const getDashboardPath = () => {
     if (!user) return '/';
-    return `/${user.userType}/dashboard`;
+    const role = typeof user.userType === 'string' && user.userType.trim() ? user.userType : 'user';
+    return `/${role}/dashboard`;
   };
 
   const getUserMenuItems = () => {
-    if (!user) return [];
-
     const baseItems = [
       { label: 'Profile', path: '/profile' }
     ];
 
-    switch (user.userType) {
+    const role = typeof user?.userType === 'string' && user.userType.trim() ? user.userType : 'user';
+    switch (role) {
       case 'user':
         return [
           ...baseItems,
           { label: 'History', path: '/user/history' },
           { label: 'Leaderboard', path: '/user/leaderboard' },
+          { label: 'Rewards', path: '/user/rewards' },
           { label: 'Feedback', path: '/user/feedback' }
         ];
       case 'supervisor':
@@ -59,6 +60,16 @@ const Navbar = () => {
     }
   };
 
+  const getRoleLabel = () => {
+    const raw = user?.userType;
+    const role = typeof raw === 'string' ? raw.trim() : '';
+    if (!role || role.toLowerCase() === 'undefined' || role.toLowerCase() === 'null' || role.toLowerCase() === 'nan') {
+      return 'User';
+    }
+    const first = role.charAt(0).toUpperCase();
+    return `${first}${role.slice(1)}`;
+  };
+
   return (
     <BootstrapNavbar 
       bg={theme === 'dark' ? 'dark' : 'light'} 
@@ -71,7 +82,7 @@ const Navbar = () => {
       <Container>
         <BootstrapNavbar.Brand as={Link} to="/" className="fw-bold text-primary">
           <i className="bi bi-recycle me-2"></i>
-          IoT Waste Segregator
+          PixelBin
         </BootstrapNavbar.Brand>
 
         <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
@@ -83,6 +94,9 @@ const Navbar = () => {
             </Nav.Link>
             <Nav.Link as={Link} to="/customer-care" onClick={handleNavClick}>
               Customer Care
+            </Nav.Link>
+            <Nav.Link as={Link} to="/safai-master" onClick={handleNavClick}>
+              Safai Master
             </Nav.Link>
           </Nav>
 
@@ -123,11 +137,10 @@ const Navbar = () => {
                   align="end"
                   menuVariant={theme === 'dark' ? 'dark' : 'light'}
                   renderMenuOnMount
+                  show={expanded ? undefined : undefined}
                 >
                   <NavDropdown.Header>
-                    <small className="text-muted">
-                      {user?.userType?.charAt(0).toUpperCase() + user?.userType?.slice(1)}
-                    </small>
+                    <small className="text-muted">{getRoleLabel()}</small>
                   </NavDropdown.Header>
                   <NavDropdown.Divider />
                   

@@ -29,6 +29,7 @@ const CustomerCare = () => {
     }
   };
 
+
   const groupFAQByCategory = (faqs) => {
     return faqs.reduce((groups, faq) => {
       const category = faq.category;
@@ -39,6 +40,7 @@ const CustomerCare = () => {
       return groups;
     }, {});
   };
+
 
   const handleInput = (e) => {
     const { name, value } = e.target;
@@ -98,7 +100,7 @@ const CustomerCare = () => {
           <div className="text-center">
             <h1 className="display-4 fw-bold mb-3">Customer Care</h1>
             <p className="lead text-muted">
-              Find answers to common questions and get support for our IoT waste segregator system
+              Find answers to common questions and get support for PixelBin
             </p>
           </div>
         </Col>
@@ -115,8 +117,8 @@ const CustomerCare = () => {
               </div>
               <h5 className="card-title">Email Support</h5>
               <p className="text-muted">Get help via email</p>
-              <a href="mailto:support@wastesegregator.com" className="btn btn-outline-primary">
-                support@wastesegregator.com
+              <a href="mailto:support@pixelbin.app" className="btn btn-outline-primary">
+                support@pixelbin.app
               </a>
             </Card.Body>
           </Card>
@@ -179,6 +181,7 @@ const CustomerCare = () => {
           ))}
         </Col>
       </Row>
+
 
       {/* Additional Support */}
       <Row className="mt-5">

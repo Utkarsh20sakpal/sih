@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -27,6 +27,9 @@ connectDB();
 
 const app = express();
 
+// Trust proxy (needed when behind reverse proxies/CDNs)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -40,16 +43,49 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Skip rate limiting for development
-  skip: (req) => process.env.NODE_ENV === 'development'
+  // Skip rate limiting for development, health checks, static files and CORS preflight
+  skip: (req) => {
+    if (process.env.NODE_ENV === 'development') return true;
+    if (req.method === 'OPTIONS') return true; // CORS preflight
+    if (req.path === '/api/health' || req.path === '/api/faq') return true; // health/docs
+    if (req.path.startsWith('/static/') || req.path.endsWith('.js') || req.path.endsWith('.css')) return true; // static
+    return false;
+  }
 });
 app.use('/api/', limiter);
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  credentials: true
-}));
+// CORS configuration with explicit preflight handling
+const allowedOrigins = (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : [])
+  .map(o => o.trim())
+  .filter(Boolean);
+// Ensure common local dev ports are allowed when no CLIENT_URL is provided
+if (!allowedOrigins.length) {
+  allowedOrigins.push('http://localhost:3000');
+  allowedOrigins.push('http://localhost:3002');
+  allowedOrigins.push('http://localhost:3003');
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // In development, allow all origins to avoid local proxy/origin issues
+    if ((process.env.NODE_ENV || 'development') !== 'production') {
+      return callback(null, true);
+    }
+    if (!origin) return callback(null, true); // allow non-browser clients
+    // Explicitly allow common localhost variants
+    const localhostRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+    if (localhostRegex.test(origin)) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
@@ -62,6 +98,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
@@ -214,6 +251,12 @@ if (process.env.NODE_ENV === 'production') {
   
   app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+  });
+}
+// In development, redirect root to the CRA dev server to avoid confusion
+if ((process.env.NODE_ENV || 'development') !== 'production') {
+  app.get('/', (req, res) => {
+    res.redirect('http://localhost:3001');
   });
 }
 

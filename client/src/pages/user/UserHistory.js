@@ -82,7 +82,7 @@ const UserHistory = () => {
         <Card.Body>
           <Row>
             <Col md={3}>
-              <Form.Group>
+              <Form.Group controlId="historyWasteType">
                 <Form.Label>Waste Type</Form.Label>
                 <Form.Select
                   name="wasteType"
@@ -99,7 +99,7 @@ const UserHistory = () => {
               </Form.Group>
             </Col>
             <Col md={3}>
-              <Form.Group>
+              <Form.Group controlId="historyStartDate">
                 <Form.Label>Start Date</Form.Label>
                 <Form.Control
                   type="date"
@@ -110,7 +110,7 @@ const UserHistory = () => {
               </Form.Group>
             </Col>
             <Col md={3}>
-              <Form.Group>
+              <Form.Group controlId="historyEndDate">
                 <Form.Label>End Date</Form.Label>
                 <Form.Control
                   type="date"

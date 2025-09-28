@@ -46,6 +46,12 @@ const Home = () => {
     { number: '24/7', label: 'Monitoring' }
   ];
 
+  const getDashboardPath = () => {
+    const roleRaw = user?.userType;
+    const role = typeof roleRaw === 'string' && roleRaw.trim() ? roleRaw : 'user';
+    return `/${role}/dashboard`;
+  };
+
   return (
     <div className="home-page">
       {/* Hero Section */}
@@ -66,7 +72,7 @@ const Home = () => {
                 {isAuthenticated ? (
                   <Button
                     as={Link}
-                    to={`/${user?.userType}/dashboard`}
+                    to={getDashboardPath()}
                     variant="warning"
                     size="lg"
                     className="px-4"
@@ -134,7 +140,7 @@ const Home = () => {
         <Container>
           <Row className="text-center mb-5">
             <Col>
-              <h2 className="display-5 fw-bold mb-3">Why Choose Our System?</h2>
+              <h2 className="display-5 fw-bold mb-3">Why Choose PixelBin?</h2>
               <p className="lead text-muted">
                 Advanced IoT technology meets environmental responsibility
               </p>
@@ -184,7 +190,7 @@ const Home = () => {
                   <p className="card-text text-muted mb-4">
                     Track your waste segregation, earn points, and contribute to environmental sustainability.
                   </p>
-                  <ul className="list-unstyled text-start">
+                  <ul className="list-unstyled text-center">
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Monthly accuracy tracking</li>
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Points and leaderboard</li>
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Waste history</li>
@@ -205,7 +211,7 @@ const Home = () => {
                   <p className="card-text text-muted mb-4">
                     Monitor system performance, manage collectors, and oversee operations.
                   </p>
-                  <ul className="list-unstyled text-start">
+                  <ul className="list-unstyled text-center">
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Real-time bin monitoring</li>
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Collector management</li>
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Performance analytics</li>
@@ -226,7 +232,7 @@ const Home = () => {
                   <p className="card-text text-muted mb-4">
                     Optimize collection routes, track bin status, and manage daily operations.
                   </p>
-                  <ul className="list-unstyled text-start">
+                  <ul className="list-unstyled text-center">
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Interactive maps</li>
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Route optimization</li>
                     <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Bin status tracking</li>

@@ -6,7 +6,8 @@ const CollectorMap = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBin, setSelectedBin] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [mapCenter, setMapCenter] = useState({ lat: 28.6139, lng: 77.2090 });
+  // Mumbai default center
+  const [mapCenter, setMapCenter] = useState({ lat: 19.0760, lng: 72.8777 });
   const [userLocation, setUserLocation] = useState(null);
   const mapRef = useRef(null);
 
@@ -16,48 +17,48 @@ const CollectorMap = () => {
       setBins([
         {
           id: 'BIN001',
-          location: 'Central Park',
+          location: 'Marine Drive',
           fillLevel: 85,
           wasteType: 'organic',
           lastUpdated: '2024-01-15T10:30:00Z',
-          coordinates: { lat: 28.6139, lng: 77.2090 },
-          address: 'Central Park, New Delhi, India'
+          coordinates: { lat: 18.9430, lng: 72.8238 },
+          address: 'Marine Drive, Mumbai'
         },
         {
           id: 'BIN002',
-          location: 'Shopping Mall',
+          location: 'Bandra West',
           fillLevel: 45,
           wasteType: 'plastic',
           lastUpdated: '2024-01-15T09:15:00Z',
-          coordinates: { lat: 28.6149, lng: 77.2100 },
-          address: 'Select City Walk, Saket, New Delhi'
+          coordinates: { lat: 19.0596, lng: 72.8295 },
+          address: 'Bandra West, Mumbai'
         },
         {
           id: 'BIN003',
-          location: 'Residential Area',
+          location: 'Andheri East',
           fillLevel: 92,
           wasteType: 'paper',
           lastUpdated: '2024-01-15T08:45:00Z',
-          coordinates: { lat: 28.6129, lng: 77.2080 },
-          address: 'Lajpat Nagar, New Delhi'
+          coordinates: { lat: 19.1197, lng: 72.8467 },
+          address: 'Andheri East, Mumbai'
         },
         {
           id: 'BIN004',
-          location: 'Office Complex',
+          location: 'Powai',
           fillLevel: 30,
           wasteType: 'electronic',
           lastUpdated: '2024-01-15T11:00:00Z',
-          coordinates: { lat: 28.6159, lng: 77.2110 },
-          address: 'Cyber City, Gurgaon'
+          coordinates: { lat: 19.1176, lng: 72.9050 },
+          address: 'Powai, Mumbai'
         },
         {
           id: 'BIN005',
-          location: 'University Campus',
+          location: 'Colaba',
           fillLevel: 70,
           wasteType: 'glass',
           lastUpdated: '2024-01-15T09:30:00Z',
-          coordinates: { lat: 28.6119, lng: 77.2070 },
-          address: 'JNU Campus, New Delhi'
+          coordinates: { lat: 18.9067, lng: 72.8147 },
+          address: 'Colaba, Mumbai'
         }
       ]);
       setLoading(false);
@@ -67,10 +68,11 @@ const CollectorMap = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const coords = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          });
+          };
+          setUserLocation(coords);
         },
         (error) => {
           console.log('Error getting location:', error);
@@ -78,6 +80,24 @@ const CollectorMap = () => {
       );
     }
   }, []);
+
+  const locateMe = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setUserLocation(coords);
+        setMapCenter(coords);
+      },
+      (error) => {
+        console.log('Error getting location:', error);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   const getFillLevelColor = (level) => {
     if (level >= 80) return 'danger';
@@ -177,7 +197,7 @@ const CollectorMap = () => {
                             className="me-2"
                             style={{ width: '12px', height: '12px', borderRadius: '50%' }}
                           ></Badge>
-                          <small>{bin.id} - {bin.fillLevel}%</small>
+                          <small>{bin.id} — {bin.location} - {bin.fillLevel}%</small>
                         </div>
                       ))}
                     </Card.Body>
@@ -193,6 +213,14 @@ const CollectorMap = () => {
                     </Badge>
                   </div>
                 )}
+
+                {/* Locate Me button */}
+                <div style={{ position: 'absolute', bottom: '10px', right: '10px', zIndex: 1000 }}>
+                  <Button variant="primary" className="btn-sm rounded-pill" onClick={locateMe}>
+                    <i className="bi bi-crosshair me-2"></i>
+                    Locate Me
+                  </Button>
+                </div>
               </div>
             </Card.Body>
           </Card>

@@ -12,7 +12,7 @@ const Footer = () => {
           <Col md={4} className="mb-3">
             <h5 className="text-white mb-3">
               <i className="bi bi-recycle me-2"></i>
-              IoT Waste Segregator
+              PixelBin
             </h5>
             <p className="text-light">
               Smart waste management system using IoT technology to improve 
@@ -31,6 +31,11 @@ const Footer = () => {
               <li className="mb-2">
                 <Link to="/customer-care" className="text-light text-decoration-none">
                   Customer Care
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/safai-master" className="text-light text-decoration-none">
+                  Safai Master
                 </Link>
               </li>
               <li className="mb-2">
@@ -61,7 +66,7 @@ const Footer = () => {
             <ul className="list-unstyled text-light">
               <li className="mb-2">
                 <i className="bi bi-envelope me-2"></i>
-                support@wastesegregator.com
+                support@pixelbin.app
               </li>
               <li className="mb-2">
                 <i className="bi bi-telephone me-2"></i>
@@ -80,7 +85,7 @@ const Footer = () => {
         <Row className="py-3">
           <Col md={6}>
             <p className="text-light mb-0">
-              &copy; {currentYear} IoT Waste Segregator. All rights reserved.
+              &copy; {currentYear} PixelBin. All rights reserved.
             </p>
           </Col>
           <Col md={6} className="text-md-end">

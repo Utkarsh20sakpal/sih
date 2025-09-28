@@ -17,6 +17,23 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
+// Normalize auth errors globally
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    if (status === 401) {
+      // Clear invalid/expired token and redirect to login
+      localStorage.removeItem('token');
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    // For 403 (forbidden), rely on route guards; avoid noisy redirects
+    return Promise.reject(error);
+  }
+);
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
