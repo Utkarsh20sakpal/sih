@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "start:prod": "npm run build:client && node server.js",
-    "build:client": "cd ../client && npm ci && npm run build",
+    "build:client": "cd ../client && npm ci --legacy-peer-deps && npm run build",
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
