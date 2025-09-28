@@ -1,1 +1,13 @@
-node_modules
+node_modules/
+
+# Build outputs
+client/build/
+
+# Environment files
+server/.env
+.env
+
+# Logs & misc
+npm-debug.log*
+yarn-error.log*
+.DS_Store
