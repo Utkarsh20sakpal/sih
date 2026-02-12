@@ -245,19 +245,51 @@ app.get('/api/faq', (req, res) => {
   });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
-  });
-}
-// In development, redirect root to the CRA dev server to avoid confusion
-if ((process.env.NODE_ENV || 'development') !== 'production') {
-  app.get('/', (req, res) => {
+// Root route - show API info
+app.get('/', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, try to serve frontend if built, otherwise show API info
+    const frontendPath = path.join(__dirname, '../client/build', 'index.html');
+    if (require('fs').existsSync(frontendPath)) {
+      return res.sendFile(frontendPath);
+    }
+    // If frontend not built, show API info
+    res.json({
+      success: true,
+      message: 'PixelBin API Server is running',
+      version: '1.0.0',
+      endpoints: {
+        health: '/api/health',
+        faq: '/api/faq',
+        auth: '/api/auth',
+        user: '/api/user',
+        supervisor: '/api/supervisor',
+        collector: '/api/collector',
+        support: '/api/support'
+      },
+      documentation: 'https://github.com/Utkarsh20sakpal/sih'
+    });
+  } else {
+    // In development, redirect to React dev server
     res.redirect('http://localhost:3000');
-  });
+  }
+});
+
+// Serve static files in production (if frontend is built)
+if (process.env.NODE_ENV === 'production') {
+  const buildPath = path.join(__dirname, '../client/build');
+  if (require('fs').existsSync(buildPath)) {
+    app.use(express.static(buildPath));
+    
+    // Serve React app for all non-API routes
+    app.get('*', (req, res, next) => {
+      // Don't serve React app for API routes
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
+      res.sendFile(path.resolve(buildPath, 'index.html'));
+    });
+  }
 }
 
 // Error handling middleware
