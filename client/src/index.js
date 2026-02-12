@@ -7,6 +7,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 import App from './App';
 
+// Configure axios base URL for production
+// In development, proxy in package.json handles this
+// In production, use REACT_APP_API_URL or default to relative URLs
+const API_URL = process.env.REACT_APP_API_URL || '';
+if (API_URL) {
+  axios.defaults.baseURL = API_URL;
+}
+
 // Ensure Authorization header is attached for all requests
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
