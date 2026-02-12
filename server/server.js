@@ -256,7 +256,7 @@ if (process.env.NODE_ENV === 'production') {
 // In development, redirect root to the CRA dev server to avoid confusion
 if ((process.env.NODE_ENV || 'development') !== 'production') {
   app.get('/', (req, res) => {
-    res.redirect('http://localhost:3001');
+    res.redirect('http://localhost:3000');
   });
 }
 

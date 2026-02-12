@@ -69,7 +69,12 @@ ${message}
         `,
       });
 
-      const isJsonTransport = transporter.transporter && transporter.transporter.name === 'JSONTransport';
+      // Check if JSON transport is being used (for development when SMTP is not configured)
+      // In nodemailer 8.x, check if SMTP config is missing or if transporter is JSON type
+      const hasSmtpConfig = process.env.SMTP_HOST && process.env.SMTP_PORT && 
+                            process.env.SMTP_USER && process.env.SMTP_PASS;
+      const isJsonTransport = !hasSmtpConfig || 
+        (transporter.transporter && transporter.transporter.name === 'JSONTransport');
 
       return res.json({
         success: true,
