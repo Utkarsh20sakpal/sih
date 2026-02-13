@@ -210,12 +210,16 @@ router.get('/google/callback',
       // Generate token
       const token = generateToken(req.user._id);
       
-      // Redirect to frontend with token
-      const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?token=${token}&userType=${req.user.userType}`;
-      res.redirect(redirectUrl);
+      // Redirect to FRONTEND (not backend) with token
+      // CLIENT_URL must be set to your frontend URL (e.g., https://your-frontend.onrender.com)
+      const frontendUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      res.redirect(
+        `${frontendUrl}/auth/callback?token=${token}&userType=${req.user.userType}`
+      );
     } catch (error) {
       console.error('Google OAuth callback error:', error);
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?error=oauth_failed`);
+      const frontendUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/auth/callback?error=oauth_failed`);
     }
   }
 );
