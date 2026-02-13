@@ -114,9 +114,18 @@ app.use('/api/supervisor', supervisorRoutes);
 app.use('/api/collector', collectorRoutes);
 app.use('/api/support', supportRoutes);
 
-// Debug route to verify auth routes are registered
+// Debug routes to verify auth routes are registered
 app.get('/api/auth/test', (req, res) => {
   res.json({ success: true, message: 'Auth routes are working' });
+});
+
+// Debug route to test callback path
+app.get('/api/auth/google/callback/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Callback route is accessible',
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'not set'
+  });
 });
 
 // Health check endpoint

@@ -199,14 +199,21 @@ router.get('/google', passport.authenticate('google', {
 // @route   GET /api/auth/google/callback
 // @access  Public
 router.get('/google/callback', 
-  passport.authenticate('google', { session: false }),
+  (req, res, next) => {
+    console.log('Google OAuth callback hit:', req.url, req.query);
+    next();
+  },
+  passport.authenticate('google', { session: false, failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?error=oauth_failed` }),
   (req, res) => {
     try {
+      console.log('Google OAuth success, user:', req.user?.email);
       // Generate token
       const token = generateToken(req.user._id);
 
       // Redirect to frontend with token
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?token=${token}&userType=${req.user.userType}`);
+      const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?token=${token}&userType=${req.user.userType}`;
+      console.log('Redirecting to:', redirectUrl);
+      res.redirect(redirectUrl);
     } catch (error) {
       console.error('Google OAuth callback error:', error);
       res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?error=oauth_failed`);
