@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Navbar as BootstrapNavbar, Nav, Container, NavDropdown, Button } from 'react-bootstrap';
+import { Navbar as BootstrapNavbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import ThemeToggle from '../common/ThemeToggle';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
@@ -100,23 +101,11 @@ const Navbar = () => {
             </Nav.Link>
           </Nav>
 
-          <Nav className="ms-auto">
+          <Nav className="ms-auto d-flex align-items-center">
             {/* Theme Toggle */}
-            <Button
-              variant={theme === 'light' ? 'outline-dark' : 'outline-light'}
-              size="sm"
-              onClick={toggleTheme}
-              className="me-2 d-flex align-items-center px-3 py-1 rounded-pill"
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-              style={{
-                background: theme === 'light' ? 'linear-gradient(135deg, #ffffff 0%, #f1f3f5 100%)' : 'linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%)',
-                border: '1px solid rgba(0,0,0,0.1)'
-              }}
-            >
-              <i className={`bi bi-${theme === 'light' ? 'moon-stars' : 'sun-fill'}`}></i>
-              <span className="ms-2 fw-semibold" style={{ fontSize: '0.85rem' }}>{theme === 'light' ? 'Dark' : 'Light'}</span>
-            </Button>
+            <div className="me-2">
+              <ThemeToggle size="sm" />
+            </div>
 
             {isAuthenticated ? (
               <>

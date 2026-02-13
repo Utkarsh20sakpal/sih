@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import Card from '../../components/common/Card';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -57,112 +60,92 @@ const Login = () => {
   }
 
   return (
-    <div className="min-vh-100 d-flex align-items-center bg-light">
+    <div className="min-vh-100 d-flex align-items-center auth-page">
       <Container>
         <Row className="justify-content-center">
-          <Col md={6} lg={5} xl={4}>
-            <Card className="shadow-lg border-0">
-              <Card.Body className="p-5">
-                <div className="text-center mb-4">
-                  <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '60px', height: '60px' }}>
-                    <i className="bi bi-box-arrow-in-right fs-4"></i>
-                  </div>
-                  <h3 className="fw-bold">Welcome Back</h3>
-                  <p className="text-muted">Sign in to your account</p>
+          <Col xs={12} sm={10} md={8} lg={6} xl={5}>
+            <Card className="auth-card" padding="lg">
+              <div className="text-center mb-4">
+                <div className="auth-icon-wrapper">
+                  <i className="bi bi-box-arrow-in-right"></i>
                 </div>
+                <h2 className="auth-title">Welcome Back</h2>
+                <p className="auth-subtitle">Sign in to your account</p>
+              </div>
 
-                {error && (
-                  <Alert variant="danger" className="mb-4">
-                    {error}
-                  </Alert>
-                )}
+              {error && (
+                <div className="alert alert-danger-modern" role="alert">
+                  {error}
+                </div>
+              )}
 
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3" controlId="loginEmail">
-                    <Form.Label>Email Address</Form.Label>
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </Form.Group>
+              <form onSubmit={handleSubmit}>
+                <Input
+                  label="Email Address"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  required
+                />
 
-                  <Form.Group className="mb-3" controlId="loginPassword">
-                    <Form.Label>Password</Form.Label>
-                    <div className="position-relative">
-                      <Form.Control
-                        type={showPassword ? 'text' : 'password'}
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Enter your password"
-                        required
-                      />
-                      <Button
-                        variant="link"
-                        className="position-absolute end-0 top-50 translate-middle-y text-muted"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{ zIndex: 10 }}
-                      >
-                        <i className={`bi bi-eye${showPassword ? '-slash' : ''}`}></i>
-                      </Button>
-                    </div>
-                  </Form.Group>
+                <Input
+                  label="Password"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  required
+                  showPasswordToggle
+                  showPassword={showPassword}
+                  onTogglePassword={() => setShowPassword(!showPassword)}
+                />
 
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <Form.Check
-                      id="loginRemember"
-                      type="checkbox"
-                      label="Remember me"
-                    />
-                    <Link to="/forgot-password" className="text-decoration-none">
-                      Forgot password?
-                    </Link>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    className="w-100 mb-3"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Signing in...
-                      </>
-                    ) : (
-                      'Sign In'
-                    )}
-                  </Button>
-                </Form>
-
-                <div className="text-center mb-3">
-                  <span className="text-muted">or</span>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <label className="form-check-label-modern">
+                    <input type="checkbox" className="form-check-input-modern" />
+                    <span className="ms-2">Remember me</span>
+                  </label>
+                  <Link to="/forgot-password" className="auth-link">
+                    Forgot password?
+                  </Link>
                 </div>
 
                 <Button
-                  variant="outline-primary"
+                  type="submit"
+                  variant="primary"
                   size="lg"
-                  className="w-100 mb-4"
-                  onClick={handleGoogleLogin}
+                  fullWidth
+                  loading={isLoading}
+                  className="mb-3"
                 >
-                  <i className="bi bi-google me-2"></i>
-                  Continue with Google
+                  Sign In
                 </Button>
+              </form>
 
-                <div className="text-center">
-                  <span className="text-muted">Don't have an account? </span>
-                  <Link to="/register" className="text-decoration-none fw-semibold">
-                    Sign up here
-                  </Link>
-                </div>
-              </Card.Body>
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="lg"
+                fullWidth
+                onClick={handleGoogleLogin}
+                className="mb-4"
+              >
+                <i className="bi bi-google me-2"></i>
+                Continue with Google
+              </Button>
+
+              <div className="text-center">
+                <span className="auth-text-muted">Don't have an account? </span>
+                <Link to="/register" className="auth-link-primary">
+                  Sign up here
+                </Link>
+              </div>
             </Card>
           </Col>
         </Row>

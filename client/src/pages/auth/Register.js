@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import Card from '../../components/common/Card';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -64,152 +67,130 @@ const Register = () => {
     return <LoadingSpinner text="Redirecting to dashboard..." />;
   }
 
+  const passwordMismatch = formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword;
+
   return (
-    <div className="min-vh-100 d-flex align-items-center bg-light py-5">
+    <div className="min-vh-100 d-flex align-items-center auth-page">
       <Container>
         <Row className="justify-content-center">
-          <Col md={6} lg={5} xl={4}>
-            <Card className="shadow-lg border-0">
-              <Card.Body className="p-5">
-                <div className="text-center mb-4">
-                  <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '60px', height: '60px' }}>
-                    <i className="bi bi-person-plus fs-4"></i>
-                  </div>
-                  <h3 className="fw-bold">Create Account</h3>
-                  <p className="text-muted">Join our waste management community</p>
+          <Col xs={12} sm={10} md={8} lg={6} xl={5}>
+            <Card className="auth-card" padding="lg">
+              <div className="text-center mb-4">
+                <div className="auth-icon-wrapper">
+                  <i className="bi bi-person-plus"></i>
                 </div>
+                <h2 className="auth-title">Create Account</h2>
+                <p className="auth-subtitle">Join our waste management community</p>
+              </div>
 
-                {error && (
-                  <Alert variant="danger" className="mb-4">
-                    {error}
-                  </Alert>
-                )}
+              {error && (
+                <div className="alert alert-danger-modern" role="alert">
+                  {error}
+                </div>
+              )}
 
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3" controlId="registerName">
-                    <Form.Label>Full Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </Form.Group>
+              <form onSubmit={handleSubmit}>
+                <Input
+                  label="Full Name"
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                  required
+                />
 
-                  <Form.Group className="mb-3" controlId="registerEmail">
-                    <Form.Label>Email Address</Form.Label>
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </Form.Group>
+                <Input
+                  label="Email Address"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  required
+                />
 
-                  <Form.Group className="mb-3" controlId="registerUserType">
-                    <Form.Label>User Type</Form.Label>
-                    <Form.Select
-                      name="userType"
-                      value={formData.userType}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="user">User</option>
-                      <option value="supervisor">Supervisor</option>
-                      <option value="collector">Collector</option>
-                    </Form.Select>
-                    <Form.Text className="text-muted">
-                      Choose your role in the waste management system
-                    </Form.Text>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3" controlId="registerPassword">
-                    <Form.Label>Password</Form.Label>
-                    <div className="position-relative">
-                      <Form.Control
-                        type={showPassword ? 'text' : 'password'}
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Create a password"
-                        required
-                        minLength={6}
-                      />
-                      <Button
-                        variant="link"
-                        className="position-absolute end-0 top-50 translate-middle-y text-muted"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{ zIndex: 10 }}
-                      >
-                        <i className={`bi bi-eye${showPassword ? '-slash' : ''}`}></i>
-                      </Button>
-                    </div>
-                    <Form.Text className="text-muted">
-                      Password must be at least 6 characters long
-                    </Form.Text>
-                  </Form.Group>
-
-                  <Form.Group className="mb-4" controlId="registerConfirmPassword">
-                    <Form.Label>Confirm Password</Form.Label>
-                    <Form.Control
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      placeholder="Confirm your password"
-                      required
-                    />
-                    {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                      <Form.Text className="text-danger">
-                        Passwords do not match
-                      </Form.Text>
-                    )}
-                  </Form.Group>
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    className="w-100 mb-3"
-                    disabled={isLoading || formData.password !== formData.confirmPassword}
+                <div className="form-group-modern">
+                  <label htmlFor="userType" className="form-label-modern">
+                    User Type
+                  </label>
+                  <select
+                    id="userType"
+                    name="userType"
+                    value={formData.userType}
+                    onChange={handleChange}
+                    className="form-control-modern"
+                    required
                   >
-                    {isLoading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Creating account...
-                      </>
-                    ) : (
-                      'Create Account'
-                    )}
-                  </Button>
-                </Form>
-
-                <div className="text-center mb-3">
-                  <span className="text-muted">or</span>
+                    <option value="user">User</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="collector">Collector</option>
+                  </select>
+                  <div className="form-helper-modern">
+                    Choose your role in the waste management system
+                  </div>
                 </div>
+
+                <Input
+                  label="Password"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Create a password"
+                  required
+                  minLength={6}
+                  showPasswordToggle
+                  showPassword={showPassword}
+                  onTogglePassword={() => setShowPassword(!showPassword)}
+                  helperText="Password must be at least 6 characters long"
+                />
+
+                <Input
+                  label="Confirm Password"
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm your password"
+                  required
+                  error={passwordMismatch ? 'Passwords do not match' : ''}
+                />
 
                 <Button
-                  variant="outline-primary"
+                  type="submit"
+                  variant="primary"
                   size="lg"
-                  className="w-100 mb-4"
-                  onClick={handleGoogleLogin}
+                  fullWidth
+                  loading={isLoading}
+                  disabled={passwordMismatch}
+                  className="mb-3"
                 >
-                  <i className="bi bi-google me-2"></i>
-                  Continue with Google
+                  Create Account
                 </Button>
+              </form>
 
-                <div className="text-center">
-                  <span className="text-muted">Already have an account? </span>
-                  <Link to="/login" className="text-decoration-none fw-semibold">
-                    Sign in here
-                  </Link>
-                </div>
-              </Card.Body>
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="lg"
+                fullWidth
+                onClick={handleGoogleLogin}
+                className="mb-4"
+              >
+                <i className="bi bi-google me-2"></i>
+                Continue with Google
+              </Button>
+
+              <div className="text-center">
+                <span className="auth-text-muted">Already have an account? </span>
+                <Link to="/login" className="auth-link-primary">
+                  Sign in here
+                </Link>
+              </div>
             </Card>
           </Col>
         </Row>

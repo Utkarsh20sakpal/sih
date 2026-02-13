@@ -39,7 +39,7 @@ function App() {
         <div className="App d-flex flex-column min-vh-100">
           <Navbar />
           <main className="flex-grow-1">
-            <div key={location.pathname} className="fade-in">
+            <div key={location.pathname} className="fade-in page-transition">
             <Routes future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
