@@ -184,7 +184,9 @@ export const AuthProvider = ({ children }) => {
 
   // Google OAuth login
   const googleLogin = () => {
-    window.location.href = '/api/auth/google';
+    const apiUrl = process.env.REACT_APP_API_URL || '';
+    const googleAuthUrl = apiUrl ? `${apiUrl}/api/auth/google` : '/api/auth/google';
+    window.location.href = googleAuthUrl;
   };
 
   // Logout function
