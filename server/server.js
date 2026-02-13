@@ -107,12 +107,17 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+// API Routes - must be registered before static file serving
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/supervisor', supervisorRoutes);
 app.use('/api/collector', collectorRoutes);
 app.use('/api/support', supportRoutes);
+
+// Debug route to verify auth routes are registered
+app.get('/api/auth/test', (req, res) => {
+  res.json({ success: true, message: 'Auth routes are working' });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -275,24 +280,7 @@ app.get('/', (req, res) => {
   }
 });
 
-// Serve static files in production (if frontend is built)
-if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../client/build');
-  if (require('fs').existsSync(buildPath)) {
-    app.use(express.static(buildPath));
-    
-    // Serve React app for all non-API routes
-    app.get('*', (req, res, next) => {
-      // Don't serve React app for API routes
-      if (req.path.startsWith('/api/')) {
-        return next();
-      }
-      res.sendFile(path.resolve(buildPath, 'index.html'));
-    });
-  }
-}
-
-// Error handling middleware
+// Error handling middleware (must come before 404 handler)
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   
@@ -304,11 +292,30 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// Serve static files in production (if frontend is built)
+// This must come AFTER all API routes but BEFORE 404 handler
+if (process.env.NODE_ENV === 'production') {
+  const buildPath = path.join(__dirname, '../client/build');
+  if (require('fs').existsSync(buildPath)) {
+    app.use(express.static(buildPath));
+    
+    // Serve React app for all non-API routes
+    app.get('*', (req, res, next) => {
+      // Don't serve React app for API routes - let them fall through to 404
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
+      res.sendFile(path.resolve(buildPath, 'index.html'));
+    });
+  }
+}
+
+// 404 handler - must be last
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'Route not found',
+    path: req.originalUrl
   });
 });
 
