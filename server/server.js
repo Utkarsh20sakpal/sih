@@ -124,7 +124,18 @@ app.get('/api/auth/google/callback/test', (req, res) => {
   res.json({ 
     success: true, 
     message: 'Callback route is accessible',
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'not set'
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'not set',
+    backendURL: process.env.BACKEND_URL || 'not set'
+  });
+});
+
+// Direct callback route test (temporary - to verify routing works)
+app.get('/api/auth/google/callback/debug', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Direct callback route works',
+    query: req.query,
+    path: req.path
   });
 });
 
@@ -309,10 +320,11 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(buildPath));
     
     // Serve React app for all non-API routes
+    // IMPORTANT: This must NOT catch API routes - they should be handled by routes above
     app.get('*', (req, res, next) => {
-      // Don't serve React app for API routes - let them fall through to 404
+      // Explicitly skip API routes - they should have been handled already
       if (req.path.startsWith('/api/')) {
-        return next();
+        return next(); // Let it fall through to 404 handler if route doesn't exist
       }
       res.sendFile(path.resolve(buildPath, 'index.html'));
     });
